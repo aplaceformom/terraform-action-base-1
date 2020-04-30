@@ -10,6 +10,12 @@ error() { echo "error: $*" >&2; }
 die() { error "$*"; exit 1; }
 toupper() { echo "$*" | tr '[a-z]' '[A-Z]'; }
 tolower() { echo "$*" | tr '[A-Z]' '[a-z]'; }
+regexp() {
+        : 'regexp():' "$@"
+        awk "/${1}/{exit 0;}{exit 1;}" <<EOF
+${2}
+EOF
+}
 
 if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
@@ -34,19 +40,50 @@ terraform {
 }
 EOF
 
-: 'Generating terraform.auto.tfvars'
+: 'Generating _action_inputs.tf'
+tfvar_number() {
+cat<<EOF
+variable "${1}" {
+	type = number
+	default = ${2}
+}
+EOF
+}
+tfvar_string() {
+cat<<EOF
+variable "${1}" {
+	type = string
+	default = "${2}"
+}
+EOF
+}
+tfvar_bool() {
+cat<<EOF
+variable "${1}" {
+	type = bool
+	default = ${2}
+}
+EOF
+}
 tfvars()
 {
 	# Run in a function so we can use the functions argument array
 	env|grep ^INPUT|while read INPUT; do
 		set -- "${INPUT%%=*}" "${INPUT#*=}"
-		printf '%s = "%s"\n' "$(tolower "${1##INPUT_}")" "${2}"
+		set -- "$(tolower "${1#INPUT_}")" "${2}"
+		if regexp '^[0-9]+$' "${2}"; then
+			tfvar_number "${1}" "${2}"
+		elif test "${2}" = 'true'; then
+			tfvar_bool "${1}" "${2}"
+		elif test "${2}" = 'false'; then
+			tfvar_bool "${1}" "${2}"
+		else
+			tfvar_string "${1}" "${2}"
+		fi
 	done
 }
-if ! test -f 'terraform.auto.tfvars'; then
-       	printf 'name = "%s"\n' "${GITHUB_PROJECT}" > 'terraform.auto.tfvars'
-fi
-tfvars >> 'terraform.auto.tfvars'
+export INPUT_NAME="${GITHUB_PROJECT}"
+tfvars >> '_action_inputs.tf'
 
 # Allow overriding our entrypoint for debugging/development purposes
 test "$#" -eq '0' || exec "$@"
