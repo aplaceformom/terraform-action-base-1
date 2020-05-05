@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
-GITHUB_PROJECT="${GITHUB_REPOSITORY##*/}"
-
 ##
 # Utility functions
 error() { echo "error: $*" >&2; }
@@ -27,6 +24,21 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
 fi
 
+GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
+export GITHUB_OWNER
+echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
+
+GITHUB_PROJECT="${GITHUB_REPOSITORY##*/}"
+export GITHUB_PROJECT
+echo "::set-env name=GITHUB_PROJECT::${GITHUB_PROJECT}"
+
+##
+# Attempt to track multiple invocations of the same action
+GITHUB_ACTION_INSTANCE="${GITHUB_ACTION_INSTANCE:=${GITHUB_ACTION}_0}"
+GITHUB_ACTION_INSTANCE="${GITHUB_ACTION}_$((${GITHUB_ACTION_INSTANCE##*_} + 1))"
+export GITHUB_ACTION_INSTANCE
+echo "::set-env name=GITHUB_ACTION_INSTANCE::${GITHUB_ACTION_INSTANCE}"
+
 : 'Generating terraform.tf'
 cat<<EOF>terraform.tf
 terraform {
@@ -34,7 +46,7 @@ terraform {
 		encrypt = true
 		region = "${AWS_REGION}"
 		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
-		key = "${GITHUB_PROJECT}/remote.tfstate"
+		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION_INSTANCE}"
 		dynamodb_table = "${INPUT_REMOTE_STATE_TABLE}"
        }
 }
