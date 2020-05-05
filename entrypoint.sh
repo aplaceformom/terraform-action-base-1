@@ -115,7 +115,7 @@ terraform plan \
 	-input=false \
 	-compact-warnings
 
-exit 0 # FIXME Temporarily skip apply until the action is cleaned up
+exit 0 # WARNING Do not remove until we finish testing this insanity
 
 : Terraform Apply
 terraform apply \
@@ -123,3 +123,46 @@ terraform apply \
 	-compact-warnings \
 	-auto-approve \
 	${INPUT_ARGS}
+
+# Produce our Outputs
+tf_keys()
+{
+	: _tf_keys: "${@}"
+	terraform output -json | jq -rc ".${1#.}|keys|.[]"
+}
+tf_get()
+{
+	: _tf_get: "${@}"
+	terraform output -json | jq -rc ".${1#.}"
+}
+tf_out()
+{
+	: _tf_out: "${@}"
+	_tf_get_key="${1}"
+	shift
+	while test "$#" -gt '0'; do
+		echo "::set-output name=${_tf_get_key}_${1}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
+		shift 1
+	done
+}
+tf_each()
+{
+	: _tf_each: "${@}"
+	while test "$#" -gt '0'; do
+		if test "${1}" = "type" || test "${1}" = "value"; then
+			shift
+			continue
+		fi
+		if test "$(tf_get "${1}.sensitive")" = 'true'; then
+			shift
+			continue
+		fi
+		if test "$(tf_get "${1}.type[0]")" != 'map' ; then
+			tf_each $(tf_keys "${1}")
+		fi
+		tf_out "${1}" $(tf_keys "${1}.value")
+		shift
+	done
+}
+
+tf_each $(tf_keys)
