@@ -24,6 +24,13 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
 fi
 
+
+test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
+echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
+
+test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_table unset'
+echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
+
 GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
 export GITHUB_OWNER
 echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
@@ -47,7 +54,7 @@ terraform {
 		region = "${AWS_REGION}"
 		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
 		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION_INSTANCE}"
-		dynamodb_table = "${INPUT_REMOTE_STATE_TABLE}"
+		dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
        }
 }
 EOF
