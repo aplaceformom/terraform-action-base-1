@@ -24,6 +24,8 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
 fi
 
+test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
+echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
 
 test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
 echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
