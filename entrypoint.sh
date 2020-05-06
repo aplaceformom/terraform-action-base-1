@@ -140,15 +140,23 @@ terraform apply \
 	${INPUT_ARGS}
 
 # Produce our Outputs
+tf_json()
+{
+	: _tf_json: "${@}"
+	if test -z "${TERRAFORM_JSON}"; then
+		export TERRAFORM_JSON="$(terraform output -json)"
+	fi
+	echo "${TERRAFORM_JSON}"
+}
 tf_keys()
 {
 	: _tf_keys: "${@}"
-	terraform output -json | jq -rc ".${1#.}|keys|.[]"
+	tf_json | jq -rc ".${1#.}|keys|.[]"
 }
 tf_get()
 {
 	: _tf_get: "${@}"
-	terraform output -json | jq -rc ".${1#.}"
+	tf_json | jq -rc ".${1#.}"
 }
 tf_out()
 {
@@ -180,4 +188,5 @@ tf_each()
 	done
 }
 
+export TERRAFORM_JSON="$(terraform output -json)"
 tf_each $(tf_keys)
