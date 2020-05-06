@@ -43,6 +43,7 @@ echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
 GITHUB_PROJECT="${GITHUB_REPOSITORY##*/}"
 export GITHUB_PROJECT
 echo "::set-env name=GITHUB_PROJECT::${GITHUB_PROJECT}"
+export INPUT_NAME="${GITHUB_PROJECT}"
 
 ##
 # Attempt to track multiple invocations of the same action
@@ -108,8 +109,6 @@ tfvars()
 		fi
 	done
 }
-export INPUT_NAME="${GITHUB_PROJECT}"
-tfvars >> '_action_inputs.tf'
 
 # Allow overriding our entrypoint for debugging/development purposes
 test "$#" -eq '0' || exec "$@"
@@ -121,6 +120,8 @@ terraform workspace new stage > /dev/null 2>&1 || :
 terraform workspace new qa    > /dev/null 2>&1 || :
 terraform workspace new dev   > /dev/null 2>&1 || :
 terraform workspace select "${INPUT_WORKSPACE:=default}"
+
+tfvars >> '_action_inputs.tf'
 terraform init -reconfigure
 
 # The above `exec` prevents us from reaching this code if the ENTRYPOINT was specified
