@@ -95,7 +95,9 @@ tfvars()
 	env|grep ^INPUT|while read INPUT; do
 		set -- "${INPUT%%=*}" "${INPUT#*=}"
 		set -- "$(tolower "${1#INPUT_}")" "${2}"
-		if regexp '^[0-9]+$' "${2}"; then
+		if test "${1}" = 'workspace'; then
+			continue
+		elif regexp '^[0-9]+$' "${2}"; then
 			tfvar_number "${1}" "${2}"
 		elif test "${2}" = 'true'; then
 			tfvar_bool "${1}" "${2}"
