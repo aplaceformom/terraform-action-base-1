@@ -24,6 +24,9 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
 fi
 
+test -n "${INPUT_REGION:=${AWS_REGION}}" || die 'region unset'
+echo "::set-env name=AWS_REGION::${INPUT_REGION}"
+
 test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
 
