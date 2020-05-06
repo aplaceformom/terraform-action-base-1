@@ -130,8 +130,6 @@ terraform plan \
 	-input=false \
 	-compact-warnings
 
-exit 0 # WARNING Do not remove until we finish testing this insanity
-
 : Terraform Apply
 terraform apply \
 	-input=false \
