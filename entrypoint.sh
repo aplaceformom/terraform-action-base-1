@@ -18,10 +18,6 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
 	: '## Args'
 	: "$@"
-	: '## Inputs'
-	set +x
-	env|grep '^INPUT'
-	set -x
 fi
 
 test -n "${INPUT_REGION:=${AWS_REGION}}" || die 'region unset'
@@ -71,7 +67,6 @@ tfvar_number() {
 cat<<EOF
 variable "${1}" {
 	type = number
-	default = ${2}
 }
 EOF
 }
@@ -79,7 +74,6 @@ tfvar_string() {
 cat<<EOF
 variable "${1}" {
 	type = string
-	default = "${2}"
 }
 EOF
 }
@@ -87,26 +81,35 @@ tfvar_bool() {
 cat<<EOF
 variable "${1}" {
 	type = bool
-	default = ${2}
 }
 EOF
 }
 tfvars()
 {
-	# Run in a function so we can use the functions argument array
-	env|grep ^INPUT|while read INPUT; do
-		set -- "${INPUT%%=*}" "${INPUT#*=}"
-		set -- "$(tolower "${1#INPUT_}")" "${2}"
+	echo "INPUTS:" >&2
+	##
+	# Override any TF_VAR_*'s via INPUT_*'s
+	# We have to itterate this in the current shell-context in order to
+	# export the new values
+	for key in $(env|grep '^INPUT_'|cut -d= -f1); do
+		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
+	done
+
+	##
+	# Itterate all TF_VAR settings into Terraform variable's on stdout
+	env|grep ^TF_VAR|while read TF_VAR; do
+                set -- "${TF_VAR%%=*}" "${TF_VAR#*=}"
+                set -- "${1#TF_VAR_}" "${2}"
 		if test "${1}" = 'workspace'; then
 			continue
 		elif regexp '^[0-9]+$' "${2}"; then
-			tfvar_number "${1}" "${2}"
+			tfvar_number "${1}"
 		elif test "${2}" = 'true'; then
-			tfvar_bool "${1}" "${2}"
+			tfvar_bool "${1}"
 		elif test "${2}" = 'false'; then
-			tfvar_bool "${1}" "${2}"
+			tfvar_bool "${1}"
 		else
-			tfvar_string "${1}" "${2}"
+			tfvar_string "${1}"
 		fi
 	done
 }
@@ -122,7 +125,7 @@ terraform workspace new qa    > /dev/null 2>&1 || :
 terraform workspace new dev   > /dev/null 2>&1 || :
 terraform workspace select "${INPUT_WORKSPACE:=default}"
 
-tfvars >> '_action_inputs.tf'
+tfvars > _action_tfvars.tf
 terraform init -reconfigure
 
 # The above `exec` prevents us from reaching this code if the ENTRYPOINT was specified
