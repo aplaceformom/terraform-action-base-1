@@ -29,6 +29,7 @@ echo "::set-env name=AWS_REGION::${INPUT_REGION}"
 
 test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
+echo '::set-env name=TF_IN_AUTOMATION::true'
 
 test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
 echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
@@ -163,6 +164,7 @@ tf_out()
 	shift
 	while test "$#" -gt '0'; do
 		echo "::set-output name=${_tf_get_key}_${1}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
+		echo "::set-env name=TF_VAR_${_tf_get_key}_${1}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
 		shift 1
 	done
 }
