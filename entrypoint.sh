@@ -136,6 +136,10 @@ terraform workspace new dev   > /dev/null 2>&1 || :
 terraform workspace select "${INPUT_WORKSPACE:=default}"
 
 tfvars > _action_tfvars.tf
+if test "${INPUT_DEBUG}" = 'true'; then
+	: _action_tfvars.tf
+	cat _action_tfvars.tf
+fi
 terraform init -reconfigure
 
 # The above `exec` prevents us from reaching this code if the ENTRYPOINT was specified
