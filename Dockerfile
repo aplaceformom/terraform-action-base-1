@@ -11,6 +11,7 @@ RUN set -e \
 		python3-dev \
 		libffi-dev \
 		openssl-dev \
+		git \
 		py3-pip \
 		jq \
 		curl \
