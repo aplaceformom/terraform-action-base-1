@@ -22,6 +22,7 @@ fi
 
 test -n "${INPUT_REGION:=${AWS_DEFAULT_REGION}}" || die 'region unset'
 echo "::set-env name=AWS_DEFAULT_REGION::${INPUT_REGION}"
+export INPUT_REGION
 
 test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
@@ -30,9 +31,11 @@ export TF_WORKSPACE=
 
 test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
 echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
+export INPUT_REMOTE_STATE_BUCKET
 
 test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_table unset'
 echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
+export INPUT_REMOTE_LOCK_TABLE
 
 GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
 export GITHUB_OWNER
@@ -57,7 +60,7 @@ cat<<EOF>terraform.tf
 terraform {
 	backend "s3" {
 		encrypt = true
-		region = "${AWS_DEFAULT_REGION}"
+		region = "${INPUT_REGION}"
 		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
 		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION_INSTANCE}"
 		dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
