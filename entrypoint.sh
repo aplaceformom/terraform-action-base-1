@@ -73,6 +73,7 @@ tfvar_number() {
 cat<<EOF
 variable "${1}" {
 	type = number
+	default = ${2}
 }
 EOF
 }
@@ -80,6 +81,7 @@ tfvar_string() {
 cat<<EOF
 variable "${1}" {
 	type = string
+	default = "${2}"
 }
 EOF
 }
@@ -87,6 +89,7 @@ tfvar_bool() {
 cat<<EOF
 variable "${1}" {
 	type = bool
+	default = ${2}
 }
 EOF
 }
@@ -111,13 +114,13 @@ tfvars()
 		if test "${1}" = 'workspace'; then
 			continue
 		elif regexp '^[0-9]+$' "${2}"; then
-			tfvar_number "${1}"
+			tfvar_number "${1}" "${2}"
 		elif test "${2}" = 'true'; then
-			tfvar_bool "${1}"
+			tfvar_bool "${1}" "${2}"
 		elif test "${2}" = 'false'; then
-			tfvar_bool "${1}"
+			tfvar_bool "${1}" "${2}"
 		else
-			tfvar_string "${1}"
+			tfvar_string "${1}" "${2}"
 		fi
 	done
 }
