@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+cd /app
+
 ##
 # Utility functions
 error() { echo "error: $*" >&2; }
