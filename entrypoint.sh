@@ -134,12 +134,21 @@ terraform plan \
 	-input=false \
 	-compact-warnings
 
-: Terraform Apply
-terraform apply \
-	-input=false \
-	-compact-warnings \
-	-auto-approve \
-	${INPUT_ARGS}
+if test "${INPUT_DESTROY}" = 'true'; then
+	: Terraform Destroy
+	terraform destroy \
+		-input=false \
+		-compact-warnings \
+		-auto-approve \
+		${INPUT_ARGS}
+else
+	: Terraform Apply
+	terraform apply \
+		-input=false \
+		-compact-warnings \
+		-auto-approve \
+		${INPUT_ARGS}
+fi
 
 # Produce our Outputs
 tf_json()
