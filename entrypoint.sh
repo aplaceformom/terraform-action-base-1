@@ -225,6 +225,7 @@ tf_each()
 	done
 }
 
+terraform refresh -input=false -compact-warnings
 test "${INPUT_DEBUG}" != 'true' || terraform output -json
 export TERRAFORM_JSON="$(terraform output -json)"
 tf_each $(tf_keys)
