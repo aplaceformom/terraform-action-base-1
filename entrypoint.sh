@@ -46,11 +46,11 @@ export INPUT_NAME="${GITHUB_PROJECT}"
 ##
 # Attempt to track multiple invocations of the same action
 GITHUB_ACTION_NAME="$(toupper "${GITHUB_ACTION}"|tr '-' '_')"
-eval "GITHUB_ACTION_COUNT=\"\$$(toupper "{GITHUB_${GITHUB_ACTION_NAME}_COUNT}")\""
+eval "GITHUB_ACTION_COUNT=\"\$$(toupper "{${GITHUB_ACTION_NAME}_COUNT}")\""
 test -n "${GITHUB_ACTION_COUNT}" || GITHUB_ACTION_COUNT='0'
 GITHUB_ACTION_COUNT="$((${GITHUB_ACTION_COUNT} + 1))"
 GITHUB_ACTION_INSTANCE="${GITHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
-echo "::set-env name=GITHUB_${GITHUB_ACTION_NAME}_COUNT::${GITHUB_ACTION_COUNT}"
+echo "::set-env name=${GITHUB_ACTION_NAME}_COUNT::${GITHUB_ACTION_COUNT}"
 
 : 'Generating terraform.tf'
 cat<<EOF>terraform.tf
