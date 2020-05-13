@@ -92,6 +92,7 @@ tfvars()
 	# We have to itterate this in the current shell-context in order to
 	# export the new values
 	for key in $(env|grep '^INPUT_'|cut -d= -f1); do
+		test "${key}" != 'workspace' || continue
 		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
 	done
 
