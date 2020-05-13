@@ -62,7 +62,7 @@ terraform {
 		encrypt = true
 		region = "${INPUT_REGION}"
 		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
-		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION_INSTANCE}"
+		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION}_${GITHUB_ACTION_COUNT}"
 		dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
        }
 }
