@@ -118,6 +118,8 @@ tfvars()
 test "$#" -eq '0' || exec "$@"
 
 : 'Initializing Terraform'
+cleanup() { rm -rf .terraform .terraform.tfstate.d .terraform.d; }
+trap cleanup 0
 terraform init
 terraform workspace new prod  > /dev/null 2>&1 || :
 terraform workspace new stage > /dev/null 2>&1 || :
