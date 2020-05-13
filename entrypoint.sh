@@ -20,8 +20,8 @@ if test "${INPUT_DEBUG}" = 'true'; then
 	: "$@"
 fi
 
-test -n "${INPUT_REGION:=${AWS_REGION}}" || die 'region unset'
-echo "::set-env name=AWS_REGION::${INPUT_REGION}"
+test -n "${INPUT_REGION:=${AWS_DEFAULT_REGION}}" || die 'region unset'
+echo "::set-env name=AWS_DEFAULT_REGION::${INPUT_REGION}"
 
 test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
@@ -54,7 +54,7 @@ cat<<EOF>terraform.tf
 terraform {
 	backend "s3" {
 		encrypt = true
-		region = "${AWS_REGION}"
+		region = "${AWS_DEFAULT_REGION}"
 		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
 		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION_INSTANCE}"
 		dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
