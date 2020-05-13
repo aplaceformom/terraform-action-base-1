@@ -26,7 +26,6 @@ export INPUT_REGION
 
 test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
-echo '::set-env name=TF_IN_AUTOMATION::true'
 export TF_WORKSPACE=
 
 test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
@@ -131,6 +130,7 @@ test "$#" -eq '0' || exec "$@"
 : 'Initializing Terraform'
 cleanup() { rm -rf .terraform* terraform.tfstate.d; }
 trap cleanup 0
+export TF_IN_AUTOMATION='true'
 terraform init
 terraform workspace new prod  > /dev/null 2>&1 || :
 terraform workspace new stage > /dev/null 2>&1 || :
