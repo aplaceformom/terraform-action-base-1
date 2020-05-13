@@ -133,6 +133,15 @@ test "$#" -eq '0' || exec "$@"
 cleanup() { rm -rf .terraform* terraform.tfstate.d; }
 trap cleanup 0
 export TF_IN_AUTOMATION='true'
+
+if test "${INPUT_DEBUG}" = 'true'; then
+	for file in *.tf; do
+		printf "##\n# BEGIN ${file}\n"
+		cat "${file}"
+		printf "# END ${file}\n##\n\n"
+	done
+fi
+
 terraform init
 terraform workspace new prod  > /dev/null 2>&1 || :
 terraform workspace new stage > /dev/null 2>&1 || :
