@@ -69,6 +69,26 @@ terraform {
 }
 EOF
 
+if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
+	: 'Generating _aws_provider.tf'
+	echo "::set-env name=AWS_ASSUME_ROLE::${INPUT_AWS_ASSUME_ROLE}"
+	role_external_id=
+	if test -n "${INPUT_AWS_EXTERNAL_ID:=${AWS_EXTERNAL_ID}}"; then
+		echo "::set-env name=AWS_EXTERNAL_ID::${INPUT_AWS_EXTERNAL_ID}"
+		role_external_id="external_id = ${INPUT_AWS_EXTERNAL_ID}"
+	fi
+	sed -e 's/^	//'<<EOF>_aws_provider.tf
+	provider "aws" {
+		region  = "${AWS_DEFAULT_REGION}"
+		assume_role {
+			role_arn = "${INPUT_AWS_ASSUME_ROLE}"
+			session_name = "${GIHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
+			${role_external_id}
+		}
+	}
+EOF
+fi
+
 : 'Generating _action_inputs.tf'
 tfvar_number() {
 cat<<EOF
