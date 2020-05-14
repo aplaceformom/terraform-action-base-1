@@ -30,6 +30,14 @@ test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
 export TF_WORKSPACE=
 
+test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
+echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
+export INPUT_REMOTE_STATE_BUCKET
+
+test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_table unset'
+echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
+export INPUT_REMOTE_LOCK_TABLE
+
 GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
 export GITHUB_OWNER
 echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
@@ -48,28 +56,18 @@ GITHUB_ACTION_COUNT="$((${GITHUB_ACTION_COUNT} + 1))"
 GITHUB_ACTION_INSTANCE="${GITHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
 echo "::set-env name=${GITHUB_ACTION_NAME}_COUNT::${GITHUB_ACTION_COUNT}"
 
-: "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}"
-if test -n "${INPUT_REMOTE_STATE_BUCKET}"; then
-	echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
-	export INPUT_REMOTE_STATE_BUCKET
-
-	test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_table unset'
-	echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
-	export INPUT_REMOTE_LOCK_TABLE
-
-	: 'Generating terraform.tf'
-	sed -e 's/^	//'<<EOF>terraform.tf
-	terraform {
-		backend "s3" {
-			encrypt = true
-			region = "${INPUT_REGION}"
-			bucket = "${INPUT_REMOTE_STATE_BUCKET}"
-			key="${GITHUB_REPOSITORY}/${GITHUB_ACTION}_${GITHUB_ACTION_COUNT}"
-			dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
-		}
-	}
+: 'Generating terraform.tf'
+cat<<EOF>terraform.tf
+terraform {
+	backend "s3" {
+		encrypt = true
+		region = "${INPUT_REGION}"
+		bucket = "${INPUT_REMOTE_STATE_BUCKET}"
+		key="${GITHUB_REPOSITORY}/${GITHUB_ACTION}_${GITHUB_ACTION_COUNT}"
+		dynamodb_table = "${INPUT_REMOTE_LOCK_TABLE}"
+       }
+}
 EOF
-fi
 
 : 'Generating _action_inputs.tf'
 tfvar_number() {
@@ -152,7 +150,10 @@ terraform workspace new dev   || :
 terraform workspace select "${INPUT_WORKSPACE:=default}"
 
 tfvars > _action_tfvars.tf
-test "${INPUT_DEBUG}" != 'true' || cat _action_tfvars.tf
+if test "${INPUT_DEBUG}" = 'true'; then
+	: _action_tfvars.tf
+	cat _action_tfvars.tf
+fi
 terraform init -reconfigure
 
 # The above `exec` prevents us from reaching this code if the ENTRYPOINT was specified
@@ -227,7 +228,5 @@ tf_each()
 	done
 }
 
-terraform refresh -input=false -compact-warnings
-test "${INPUT_DEBUG}" != 'true' || terraform output -json
 export TERRAFORM_JSON="$(terraform output -json)"
 tf_each $(tf_keys)
