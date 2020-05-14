@@ -127,6 +127,8 @@ tfvars()
 		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
 	done
 
+	return
+
 	##
 	# Itterate all TF_VAR settings into Terraform variable's on stdout
 	env|grep ^TF_VAR|while read TF_VAR; do
