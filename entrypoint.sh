@@ -75,7 +75,7 @@ if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
 	role_external_id=
 	if test -n "${INPUT_AWS_EXTERNAL_ID:=${AWS_EXTERNAL_ID}}"; then
 		echo "::set-env name=AWS_EXTERNAL_ID::${INPUT_AWS_EXTERNAL_ID}"
-		role_external_id="external_id = ${INPUT_AWS_EXTERNAL_ID}"
+		role_external_id="external_id = \"${INPUT_AWS_EXTERNAL_ID}\""
 	fi
 	sed -e 's/^	//'<<EOF>_aws_provider.tf
 	provider "aws" {
