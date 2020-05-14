@@ -148,9 +148,9 @@ tfvars()
 		elif regexp '^[0-9]+$' "${2}"; then
 			tfvar_number "${1}" "${2}"
 		elif regexp '^\{.*\}$' "${2}"; then
-			tfvar_map
+			tfvar_map "${1}"
 		elif regexp '^\[.*\]$' "${2}"; then
-			tfvar_list
+			tfvar_list "${1}"
 		elif test "${2}" = 'true'; then
 			tfvar_bool "${1}" "${2}"
 		elif test "${2}" = 'false'; then
