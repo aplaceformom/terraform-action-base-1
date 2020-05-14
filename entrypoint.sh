@@ -145,10 +145,10 @@ if test "${INPUT_DEBUG}" = 'true'; then
 fi
 
 terraform init
-terraform workspace new prod  > /dev/null 2>&1 || :
-terraform workspace new stage > /dev/null 2>&1 || :
-terraform workspace new qa    > /dev/null 2>&1 || :
-terraform workspace new dev   > /dev/null 2>&1 || :
+terraform workspace new prod  || :
+terraform workspace new stage || :
+terraform workspace new qa    || :
+terraform workspace new dev   || :
 terraform workspace select "${INPUT_WORKSPACE:=default}"
 
 tfvars > _action_tfvars.tf
