@@ -70,6 +70,15 @@ terraform {
 EOF
 
 if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
+	: 'Generating AWS Credstash Config'
+	mkdir "${HOME}/.aws"
+	sed -e 's/^	//'<<EOF>"${HOME}/.aws/config"
+	[credstash]
+	role_arn = ${INPUT_AWS_ASSUME_ROLE}
+	region = ${AWS_DEFAULT_REGION}
+	external_id = ${INPUT_AWS_EXTERNAL_ID}
+EOF
+
 	: 'Generating _aws_provider.tf'
 	echo "::set-env name=AWS_ASSUME_ROLE::${INPUT_AWS_ASSUME_ROLE}"
 	role_external_id=
