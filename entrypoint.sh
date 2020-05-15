@@ -241,10 +241,12 @@ fi
 tf_json()
 {
 	: _tf_json: "${@}"
+	set +x
 	if test -z "${TERRAFORM_JSON}"; then
 		export TERRAFORM_JSON="$(terraform output -json)"
 	fi
 	echo "${TERRAFORM_JSON}"
+	test "${INPUT_DEBUG}" = 'false' || set -x
 }
 tf_keys()
 {
