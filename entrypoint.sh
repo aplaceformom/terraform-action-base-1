@@ -88,19 +88,29 @@ if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
 	}
 EOF
 	: 'Generating AWS Credstash Config'
-	mkdir "${HOME}/.aws"
-	sed -e 's/^	//'<<EOF>"${HOME}/.aws/config"
+	test -d "${HOME}/.aws" || mkdir -p "${HOME}/.aws"
+	sed -e 's/^	//'<<EOF >"${HOME}/.aws/config"
 	[default]
 	output = json
 	region = ${INPUT_REGION}
 	duration_seconds = 1200
 
-	[credstash]
+	[profile credstash]
 	role_arn = ${INPUT_AWS_ASSUME_ROLE}
 	source_profile = default
 	region = ${INPUT_REGION}
 	external_id = ${INPUT_AWS_EXTERNAL_ID}
 EOF
+	# WARNING DO NOT ECHO SECRETS
+	set +x
+	touch "${HOME}/.aws/credentials"
+	chmod og-rwx "${HOME}/.aws/credentials"
+	sed -e 's/^	//'<<EOF >"${HOME}/.aws/credentials"
+	[default]
+	aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+	aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+EOF
+	test "${INPUT_DEBUG}" = 'false' || set -x
 fi
 
 : 'Generating _action_inputs.tf'
