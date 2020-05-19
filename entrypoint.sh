@@ -38,14 +38,19 @@ test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_t
 echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
 export INPUT_REMOTE_LOCK_TABLE
 
+export INPUT_GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
+export INPUT_GITHUB_SHA="${GITHUB_SHA}"
+export INPUT_GITHUB_REF="${GITHUB_REF}"
+
 GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
 export GITHUB_OWNER
 echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
+export INPUT_GITHUB_OWNER="${GITHUB_OWNER}"
 
 GITHUB_PROJECT="${GITHUB_REPOSITORY##*/}"
 export GITHUB_PROJECT
 echo "::set-env name=GITHUB_PROJECT::${GITHUB_PROJECT}"
-export INPUT_NAME="${GITHUB_PROJECT}"
+export INPUT_GITHUB_PROJECT="${GITHUB_PROJECT}"
 
 ##
 # Attempt to track multiple invocations of the same action
