@@ -222,7 +222,7 @@ if test "${INPUT_DEBUG}" = 'true'; then
 fi
 terraform init -reconfigure
 
-if test "${INPUT_PLAN:=true}" != 'true'; then
+if test "${INPUT_PLAN:=true}" = 'true'; then
 	: Terraform Plan
 	terraform plan \
 		-input=false \
