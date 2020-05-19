@@ -188,6 +188,8 @@ tfvars()
 # Allow overriding our entrypoint for debugging/development purposes
 test "$#" -eq '0' || exec "$@"
 
+# The above `exec` prevents us from reaching this code if the Docker CMD was specified
+
 : 'Initializing Terraform'
 cleanup() { rm -rf .terraform* terraform.tfstate.d; }
 trap cleanup 0
@@ -215,22 +217,25 @@ if test "${INPUT_DEBUG}" = 'true'; then
 fi
 terraform init -reconfigure
 
-# The above `exec` prevents us from reaching this code if the ENTRYPOINT was specified
-: Terraform Plan
-terraform plan \
-	-input=false \
-	-compact-warnings
+if test "${INPUT_PLAN:=true}" != 'true'; then
+	: Terraform Plan
+	terraform plan \
+		-input=false \
+		-compact-warnings
+fi
 
-if test "${INPUT_DESTROY}" = 'true'; then
-	: Terraform Destroy
-	terraform destroy \
+if test "${INPUT_DEPLOY:=true}" = 'true'; then
+	: Terraform Apply
+	terraform apply \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
 		${INPUT_ARGS}
-else
-	: Terraform Apply
-	terraform apply \
+fi
+
+if test "${INPUT_DESTROY:=false}" = 'true'; then
+	: Terraform Destroy
+	terraform destroy \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
