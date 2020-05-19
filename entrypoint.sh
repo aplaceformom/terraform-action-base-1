@@ -161,15 +161,30 @@ tfvars()
 	# Override any TF_VAR_*'s via INPUT_*'s
 	# We have to itterate this in the current shell-context in order to
 	# export the new values
+	set +x
 	for key in $(env|grep '^INPUT_'|cut -d= -f1); do
+		case "${1}" in
+		(*SECRET*|*PASSWORD*|*PASSWD*);;
+		(*) test "${INPUT_DEBUG}" = 'false' || set -x;;
+		esac
+
 		: input: ${key}
 		test "${key}" != 'workspace' || continue
 		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
+		test "${INPUT_DEBUG}" = 'false' || set -x;;
 	done
 
 	##
 	# Itterate all TF_VAR settings into Terraform variable's on stdout
 	env|grep ^TF_VAR|while read TF_VAR; do
+
+		## avoid reporting secrets
+		set +x
+		case "${1}" in
+		(*secret*|*password*|*passwd*);;
+		(*) test "${INPUT_DEBUG}" = 'false' || set -x;;
+		esac
+
                 set -- "${TF_VAR%%=*}" "${TF_VAR#*=}"
                 set -- "${1#TF_VAR_}" "${2}"
 		if test "${1}" = 'workspace'; then
@@ -187,6 +202,8 @@ tfvars()
 		else
 			tfvar_string "${1}" "${2}"
 		fi
+
+		test "${INPUT_DEBUG}" = 'false' || set -x
 	done
 }
 
