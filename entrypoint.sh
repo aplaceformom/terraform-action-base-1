@@ -52,6 +52,9 @@ export GITHUB_PROJECT
 echo "::set-env name=GITHUB_PROJECT::${GITHUB_PROJECT}"
 export INPUT_GITHUB_PROJECT="${GITHUB_PROJECT}"
 
+GIT_SHORT_REV="$(printf '%.8s' "${GITHUB_SHA}")"
+echo "::set-env name=GIT_SHORT_REV::${GIT_SHORT_REV}"
+
 ##
 # Attempt to track multiple invocations of the same action
 GITHUB_ACTION_NAME="$(toupper "${GITHUB_ACTION}"|tr '-' '_')"
