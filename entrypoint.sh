@@ -15,6 +15,22 @@ regexp() {
 ${2}
 EOF
 }
+ref2env()
+{
+        set -- 'tag'
+        case "${GITHUB_REF}" in
+        (refs/head/*)   set -- "${GITHUB_REF##/refs/head/}";;
+        esac
+
+        case "${1}" in
+        (${INPUT_PROD:=tag})      set -- 'prod';;
+        (${INPUT_STAGE:=master})  set -- 'stage';;
+        (${INPUT_DEV:=develop}|*) set -- 'dev';;
+        esac
+
+        echo "${1}"
+}
+
 
 if test "${INPUT_DEBUG}" = 'true'; then
 	set -x
@@ -26,7 +42,9 @@ test -n "${INPUT_REGION:=${AWS_DEFAULT_REGION}}" || die 'region unset'
 echo "::set-env name=AWS_DEFAULT_REGION::${INPUT_REGION}"
 export INPUT_REGION
 
-test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}" || die 'workspace unset'
+if test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}"; then
+	INPUT_WORKSPACE="$(ref2env)"
+fi
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
 export TF_WORKSPACE=
 
