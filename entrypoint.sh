@@ -19,7 +19,7 @@ ref2env()
 {
         set -- 'tag'
         case "${GITHUB_REF}" in
-        (refs/head/*)   set -- "${GITHUB_REF##/refs/head/}";;
+        (refs/head/*)   set -- "${GITHUB_REF##refs/head/}";;
         esac
 
         case "${1}" in
