@@ -193,7 +193,7 @@ tfvars()
 		: input: ${key}
 		test "${key}" != 'workspace' || continue
 		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
-		test "${INPUT_DEBUG}" = 'false' || set -x;;
+		test "${INPUT_DEBUG}" = 'false' || set -x
 	done
 
 	##
