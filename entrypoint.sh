@@ -307,14 +307,17 @@ tf_get()
 	: _tf_get: "${@}"
 	tf_json | jq -rc ".${1#.}"
 }
+tf_sane() { echo "${*}"|tr '-' '_'; }
 tf_out()
 {
 	: _tf_out: "${@}"
-	_tf_get_key="${1}"
+	_tf_get_key="$(tf_sane "${1}")"
 	shift
 	while test "$#" -gt '0'; do
-		echo "::set-output name=${_tf_get_key}_${1}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
-		echo "::set-env name=TF_VAR_${_tf_get_key}_${1}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
+		_tf_out_key="$(tf_sane "${_tf_get_key}_${1}")"
+		echo "::set-output name=${_tf_out_key}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
+		echo "::set-env name=TF_VAR_${_tf_out_key}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
+		eval "TF_VAR_${_tf_out_key}=\"$(tf_get "${_tf_get_key}.value[\"${1}\"]")\""
 		shift 1
 	done
 }
