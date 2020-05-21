@@ -343,7 +343,7 @@ tf_each $(tf_keys)
 
 if test -n "${INPUT_TF_ASSUME_ROLE}"; then
 	echo "::set-env name=AWS_ASSUME_ROLE::arn:aws:iam::${TF_VAR_account_id}:role/${INPUT_TF_ASSUME_ROLE}"
-	if test -n "${TF_VAR_aws_external_id}"; then
+	if test -n "${TF_VAR_external_id}"; then
 		echo "::set-env name=AWS_EXTERNAL_ID::${TF_VAR_external_id}"
 	fi
 fi
