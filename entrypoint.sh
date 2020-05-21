@@ -138,7 +138,7 @@ EOF
 	aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 	aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
 EOF
-	test "${INPUT_DEBUG}" = 'false' || set -x
+	test "${INPUT_DEBUG}" != 'true' || set -x
 fi
 
 : 'Generating _action_inputs.tf'
@@ -188,13 +188,13 @@ tfvars()
 	for key in $(env|grep '^INPUT_'|cut -d= -f1); do
 		case "${1}" in
 		(*SECRET*|*PASSWORD*|*PASSWD*);;
-		(*) test "${INPUT_DEBUG}" = 'false' || set -x;;
+		(*) test "${INPUT_DEBUG}" != 'true' || set -x;;
 		esac
 
 		: input: ${key}
 		test "${key}" != 'workspace' || continue
 		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
-		test "${INPUT_DEBUG}" = 'false' || set -x
+		test "${INPUT_DEBUG}" != 'true' || set -x
 	done
 
 	##
@@ -205,7 +205,7 @@ tfvars()
 		set +x
 		case "${1}" in
 		(*secret*|*password*|*passwd*);;
-		(*) test "${INPUT_DEBUG}" = 'false' || set -x;;
+		(*) test "${INPUT_DEBUG}" != 'true' || set -x;;
 		esac
 
                 set -- "${TF_VAR%%=*}" "${TF_VAR#*=}"
@@ -226,7 +226,7 @@ tfvars()
 			tfvar_string "${1}" "${2}"
 		fi
 
-		test "${INPUT_DEBUG}" = 'false' || set -x
+		test "${INPUT_DEBUG}" != 'true' || set -x
 	done
 }
 
@@ -296,7 +296,7 @@ tf_json()
 		export TERRAFORM_JSON="$(terraform output -json)"
 	fi
 	echo "${TERRAFORM_JSON}"
-	test "${INPUT_DEBUG}" = 'false' || set -x
+	test "${INPUT_DEBUG}" != 'true' || set -x
 }
 tf_keys()
 {
