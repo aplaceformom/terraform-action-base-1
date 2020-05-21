@@ -42,7 +42,7 @@ test -n "${INPUT_REGION:=${AWS_DEFAULT_REGION}}" || die 'region unset'
 echo "::set-env name=AWS_DEFAULT_REGION::${INPUT_REGION}"
 export INPUT_REGION
 
-if test -n "${INPUT_WORKSPACE:=${TF_WORKSPACE}}"; then
+if test -z "${INPUT_WORKSPACE:=${TF_WORKSPACE}}"; then
 	INPUT_WORKSPACE="$(ref2env)"
 fi
 echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
