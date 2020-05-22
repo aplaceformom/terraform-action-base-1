@@ -296,7 +296,7 @@ tf_keys()
 tf_value()
 {
 	: _tf_value: "${*}"
-	echo "${1}"| jq -rc ".${2}"
+	echo "${1}"| jq -rc ".[\"${2}\"]"
 }
 
 tf_out() {
