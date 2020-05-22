@@ -319,7 +319,9 @@ tf_export()
 
 	_tf_export_val="$(tf_value "${1}" 'value')"
 	if test "$(tf_value "${1}" 'type')" = 'map'; then
-		tf_export "${_tf_export_val}" "${_tf_namespace}"
+		for _tf_key in $(tf_keys  "${_tf_export_val}"); do
+			tf_export "$(tf_value "${_tf_export_val}" "${_tf_key}")" "${_tf_namespace}"
+		done
 		return
 	fi
 
@@ -328,7 +330,6 @@ tf_export()
 	eval "TF_VAR_${_tf_namespace}=\"${_tf_export_val}\""
 )}
 
-set +x
 TERRAFORM_JSON="$(terraform output -json)"
 for key in $(tf_keys  "${TERRAFORM_JSON}"); do
 	tf_export "$(tf_value "${TERRAFORM_JSON}" "${key}")" "${key}"
