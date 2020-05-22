@@ -288,62 +288,51 @@ if test "${INPUT_DESTROY:=false}" = 'true'; then
 fi
 
 # Produce our Outputs
-tf_json()
-{
-	: _tf_json: "${@}"
-	set +x
-	if test -z "${TERRAFORM_JSON}"; then
-		export TERRAFORM_JSON="$(terraform output -json)"
-	fi
-	echo "${TERRAFORM_JSON}"
-	test "${INPUT_DEBUG}" != 'true' || set -x
-}
 tf_keys()
 {
-	: _tf_keys: "${@}"
-	tf_json | jq -rc ".${1#.}|keys|.[]"
+	: _tf_keys: "${*}"
+	echo "${*}" | jq -rc ".|keys|.[]"
 }
-tf_get()
+tf_sensitive()
 {
-	: _tf_get: "${@}"
-	tf_json | jq -rc ".${1#.}"
+	: _tf_senative: "${*}"
+	test "$(echo | jq -rc ".value")" = 'true'
 }
-tf_sane() { echo "${*}"|tr '-' '_'; }
-tf_out()
+tf_type()
 {
-	: _tf_out: "${@}"
-	_tf_get_key="$(tf_sane "${1}")"
-	shift
-	while test "$#" -gt '0'; do
-		_tf_out_key="$(tf_sane "${_tf_get_key}_${1}")"
-		echo "::set-output name=${_tf_out_key}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
-		echo "::set-env name=TF_VAR_${_tf_out_key}::$(tf_get "${_tf_get_key}.value[\"${1}\"]")"
-		eval "TF_VAR_${_tf_out_key}=\"$(tf_get "${_tf_get_key}.value[\"${1}\"]")\""
-		shift 1
-	done
+	: _tf_type: "${*}"
+	echo "${1}"| jq -rc ".type"
 }
-tf_each()
+tf_value()
 {
-	: _tf_each: "${@}"
-	while test "$#" -gt '0'; do
-		if test "${1}" = "type" || test "${1}" = "value"; then
-			shift
-			continue
-		fi
-		if test "$(tf_get "${1}.sensitive")" = 'true'; then
-			shift
-			continue
-		fi
-		if test "$(tf_get "${1}.type[0]")" != 'map' ; then
-			tf_each $(tf_keys "${1}")
-		fi
-		tf_out "${1}" $(tf_keys "${1}.value")
-		shift
-	done
+	: _tf_value: "${*}"
+	echo "${1}"| jq -rc ".${2}"
 }
 
-export TERRAFORM_JSON="$(terraform output -json)"
-tf_each $(tf_keys)
+tf_sane() { echo "${*}"|tr '-' '_'; }
+tf_export()
+{(
+	: _tf_export: "${@}"
+	_tf_namespace="${2##_}"
+
+	test "$(tf_value "${1}" 'sensitive')" != 'true' || return
+
+	_tf_export_val="$(tf_value "${1}" 'value')"
+	if test "$(tf_value "${1}" 'type')" = 'map'; then
+		tf_export "${_tf_export_val}" "${_tf_namespace}"
+		return
+	fi
+
+	echo "::set-output name=${_tf_namespace}::${_tf_export_val}"
+	echo "::set-env name=TF_VAR_${_tf_namespace}::${_tf_export_val}"
+	eval "TF_VAR_${_tf_namespace}=\"${_tf_export_val}\""
+)}
+
+set +x
+TERRAFORM_JSON="$(terraform output -json)"
+for key in $(tf_keys  "${TERRAFORM_JSON}"); do
+	tf_export "$(tf_value "${TERRAFORM_JSON}" "${key}")" "${key}"
+done
 
 if test -n "${INPUT_TF_ASSUME_ROLE}"; then
 	echo "::set-env name=AWS_ASSUME_ROLE::arn:aws:iam::${TF_VAR_account_id}:role/${INPUT_TF_ASSUME_ROLE}"
