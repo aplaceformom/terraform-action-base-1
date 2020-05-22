@@ -308,7 +308,7 @@ tf_out() {
 	eval "TF_VAR_${1}=\"${2}\""
 }
 tf_export()
-{(
+{
 	: _tf_export: "${@}"
 	test "$(tf_value "${1}" 'sensitive')" != 'true' || return
 
@@ -325,7 +325,7 @@ tf_export()
 		;;
 	(*)	echo "WARNING: unknown type '${_tf_export_type}'" >&2;;
 	esac
-)}
+}
 
 TERRAFORM_JSON="$(terraform output -json)"
 for key in $(tf_keys  "${TERRAFORM_JSON}"); do
