@@ -293,41 +293,38 @@ tf_keys()
 	: _tf_keys: "${*}"
 	echo "${*}" | jq -rc ".|keys|.[]"
 }
-tf_sensitive()
-{
-	: _tf_senative: "${*}"
-	test "$(echo | jq -rc ".value")" = 'true'
-}
-tf_type()
-{
-	: _tf_type: "${*}"
-	echo "${1}"| jq -rc ".type"
-}
 tf_value()
 {
 	: _tf_value: "${*}"
 	echo "${1}"| jq -rc ".${2}"
 }
 
-tf_sane() { echo "${*}"|tr '-' '_'; }
+tf_out() {
+	set -- "$(echo "${1}"|tr '-' '_')" "${2}"
+	set -- "${1##_}" "${2}"
+	set -- "${1%%_}" "${2}"
+	echo "::set-output name=${1}::${2}"
+	echo "::set-env name=TF_VAR_${1}::${2}"
+	eval "TF_VAR_${1}=\"${2}\""
+}
 tf_export()
 {(
 	: _tf_export: "${@}"
-	_tf_namespace="${2##_}"
-
 	test "$(tf_value "${1}" 'sensitive')" != 'true' || return
 
 	_tf_export_val="$(tf_value "${1}" 'value')"
-	if test "$(tf_value "${1}" 'type')" = 'map'; then
-		for _tf_key in $(tf_keys  "${_tf_export_val}"); do
-			tf_export "$(tf_value "${_tf_export_val}" "${_tf_key}")" "${_tf_namespace}"
-		done
-		return
-	fi
+	_tf_export_type="$(tf_value "${1}" 'type')"
+	case "${_tf_export_type}" in
 
-	echo "::set-output name=${_tf_namespace}::${_tf_export_val}"
-	echo "::set-env name=TF_VAR_${_tf_namespace}::${_tf_export_val}"
-	eval "TF_VAR_${_tf_namespace}=\"${_tf_export_val}\""
+	(string) tf_out "${2}" "${_tf_export_val}" ;;
+
+	(*map*|*object*)
+		for _tf_key in $(tf_keys  "${_tf_export_val}"); do
+			tf_out "${2}_${_tf_key}" "$(tf_value "${_tf_export_val}" "${_tf_key}")"
+		done
+		;;
+	(*)	echo "WARNING: unknown type '${_tf_export_type}'" >&2;;
+	esac
 )}
 
 TERRAFORM_JSON="$(terraform output -json)"
