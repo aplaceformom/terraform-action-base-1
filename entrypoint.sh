@@ -138,6 +138,7 @@ EOF
 	aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 	aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
 EOF
+	export INPUT_AWS_ASSUME_ROLE INPUT_AWS_EXTERNAL_ID
 	test "${INPUT_DEBUG}" != 'true' || set -x
 fi
 
