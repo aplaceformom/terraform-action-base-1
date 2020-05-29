@@ -186,7 +186,7 @@ tfvars()
 	# We have to itterate this in the current shell-context in order to
 	# export the new values
 	set +x
-	for key in $(env|grep '^INPUT_'|cut -d= -f1); do
+	for key in $(env|sed -E -n 's/^(INPUT_[^=]+).*/\1/p'); do
 		case "${1}" in
 		(*SECRET*|*PASSWORD*|*PASSWD*);;
 		(*) test "${INPUT_DEBUG}" != 'true' || set -x;;
@@ -194,7 +194,7 @@ tfvars()
 
 		: input: ${key}
 		test "${key}" != 'workspace' || continue
-		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}")'"
+		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}"|tr -d '\n')'"
 		test "${INPUT_DEBUG}" != 'true' || set -x
 	done
 
