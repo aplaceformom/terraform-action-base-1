@@ -10,7 +10,7 @@ die() { error "$*"; exit 1; }
 toupper() { echo "$*" | tr '[a-z]' '[A-Z]'; }
 tolower() { echo "$*" | tr '[A-Z]' '[a-z]'; }
 regexp() {
-        : 'regexp():' "$@"
+        : 'regexp(): ' "$@"
         awk "/${1}/{exit 0;}{exit 1;}" <<EOF
 ${2}
 EOF
