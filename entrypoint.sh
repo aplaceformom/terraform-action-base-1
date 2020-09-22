@@ -10,7 +10,7 @@ die() { error "$*"; exit 1; }
 toupper() { echo "$*" | tr '[a-z]' '[A-Z]'; }
 tolower() { echo "$*" | tr '[A-Z]' '[a-z]'; }
 regexp() {
-        : 'regexp():' "$@"
+        : 'regexp(): ' "$@"
         awk "/${1}/{exit 0;}{exit 1;}" <<EOF
 ${2}
 EOF
@@ -194,7 +194,7 @@ tfvars()
 
 		: input: ${key}
 		test "${key}" != 'workspace' || continue
-		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval echo "\$${key}"|tr -d '\n')'"
+		eval export "TF_VAR_$(tolower "${key#INPUT_}")='$(eval printf '%s' "\"\$${key}\""|tr -d '\n')'"
 		test "${INPUT_DEBUG}" != 'true' || set -x
 	done
 
@@ -231,11 +231,6 @@ tfvars()
 	done
 }
 
-# Allow overriding our entrypoint for debugging/development purposes
-test "$#" -eq '0' || exec "$@"
-
-# The above `exec` prevents us from reaching this code if the Docker CMD was specified
-
 : 'Initializing Terraform'
 cleanup() { rm -rf .terraform* terraform.tfstate.d; }
 trap cleanup 0
@@ -263,6 +258,11 @@ if test "${INPUT_DEBUG}" = 'true'; then
 fi
 terraform init -reconfigure
 
+# Allow overriding our entrypoint for debugging/development purposes
+test "$#" -eq '0' || exec "$@"
+
+# The above `exec` prevents us from reaching this code if the Docker CMD was specified
+
 if test "${INPUT_PLAN:=true}" = 'true'; then
 	: Terraform Plan
 	terraform plan \
@@ -270,18 +270,18 @@ if test "${INPUT_PLAN:=true}" = 'true'; then
 		-compact-warnings
 fi
 
-if test "${INPUT_DEPLOY:=true}" = 'true'; then
-	: Terraform Apply
-	terraform apply \
+if test "${INPUT_DESTROY:=false}" = 'true'; then
+	: Terraform Destroy
+	terraform destroy \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
 		${INPUT_ARGS}
 fi
 
-if test "${INPUT_DESTROY:=false}" = 'true'; then
-	: Terraform Destroy
-	terraform destroy \
+if test "${INPUT_DEPLOY:=true}" = 'true'; then
+	: Terraform Apply
+	terraform apply \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
