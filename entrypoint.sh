@@ -270,18 +270,18 @@ if test "${INPUT_PLAN:=true}" = 'true'; then
 		-compact-warnings
 fi
 
-if test "${INPUT_DEPLOY:=true}" = 'true'; then
-	: Terraform Apply
-	terraform apply \
+if test "${INPUT_DESTROY:=false}" = 'true'; then
+	: Terraform Destroy
+	terraform destroy \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
 		${INPUT_ARGS}
 fi
 
-if test "${INPUT_DESTROY:=false}" = 'true'; then
-	: Terraform Destroy
-	terraform destroy \
+if test "${INPUT_DEPLOY:=true}" = 'true'; then
+	: Terraform Apply
+	terraform apply \
 		-input=false \
 		-compact-warnings \
 		-auto-approve \
