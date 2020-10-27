@@ -40,21 +40,21 @@ if test "${INPUT_DEBUG}" = 'true'; then
 fi
 
 test -n "${INPUT_REGION:=${AWS_DEFAULT_REGION}}" || die 'region unset'
-echo "::set-env name=AWS_DEFAULT_REGION::${INPUT_REGION}"
+echo "AWS_DEFAULT_REGION=${INPUT_REGION}" >> "${GITHUB_ENV}"
 export INPUT_REGION
 
 if test -z "${INPUT_WORKSPACE:=${TF_WORKSPACE}}"; then
 	INPUT_WORKSPACE="$(ref2env)"
 fi
-echo "::set-env name=TF_WORKSPACE::${INPUT_WORKSPACE}"
+echo "TF_WORKSPACE=${INPUT_WORKSPACE}" >> "${GITHUB_ENV}"
 export TF_WORKSPACE=
 
 test -n "${INPUT_REMOTE_STATE_BUCKET:=${REMOTE_STATE_BUCKET}}" || die 'remote_state_bucket unset'
-echo "::set-env name=REMOTE_STATE_BUCKET::${INPUT_REMOTE_STATE_BUCKET}"
+echo "REMOTE_STATE_BUCKET=${INPUT_REMOTE_STATE_BUCKET}" >> "${GITHUB_ENV}"
 export INPUT_REMOTE_STATE_BUCKET
 
 test -n "${INPUT_REMOTE_LOCK_TABLE:=${REMOTE_LOCK_TABLE}}" || die 'remote_lock_table unset'
-echo "::set-env name=REMOTE_LOCK_TABLE::${INPUT_REMOTE_LOCK_TABLE}"
+echo "REMOTE_LOCK_TABLE=${INPUT_REMOTE_LOCK_TABLE}" >> "${GITHUB_ENV}"
 export INPUT_REMOTE_LOCK_TABLE
 
 export INPUT_GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
@@ -63,16 +63,16 @@ export INPUT_GITHUB_REF="${GITHUB_REF}"
 
 GITHUB_OWNER="${GITHUB_REPOSITORY%%/*}"
 export GITHUB_OWNER
-echo "::set-env name=GITHUB_OWNER::${GITHUB_OWNER}"
+echo "GITHUB_OWNER=${GITHUB_OWNER}" >> "${GITHUB_ENV}"
 export INPUT_GITHUB_OWNER="${GITHUB_OWNER}"
 
 GITHUB_PROJECT="${GITHUB_REPOSITORY##*/}"
 export GITHUB_PROJECT
-echo "::set-env name=GITHUB_PROJECT::${GITHUB_PROJECT}"
+echo "GITHUB_PROJECT=${GITHUB_PROJECT}" >> "${GITHUB_ENV}"
 export INPUT_GITHUB_PROJECT="${GITHUB_PROJECT}"
 
 GIT_SHORT_REV="$(printf '%.8s' "${GITHUB_SHA}")"
-echo "::set-env name=GIT_SHORT_REV::${GIT_SHORT_REV}"
+echo "GIT_SHORT_REV=${GIT_SHORT_REV}" >> "${GITHUB_ENV}"
 echo "::set-output name=git_short_rev::${GIT_SHORT_REV}"
 
 ##
@@ -82,7 +82,7 @@ eval "GITHUB_ACTION_COUNT=\"\$$(toupper "{${GITHUB_ACTION_NAME}_COUNT}")\""
 test -n "${GITHUB_ACTION_COUNT}" || GITHUB_ACTION_COUNT='0'
 GITHUB_ACTION_COUNT="$((${GITHUB_ACTION_COUNT} + 1))"
 GITHUB_ACTION_INSTANCE="${GITHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
-echo "::set-env name=${GITHUB_ACTION_NAME}_COUNT::${GITHUB_ACTION_COUNT}"
+echo "${GITHUB_ACTION_NAME}_COUNT=${GITHUB_ACTION_COUNT}" >> "${GITHUB_ENV}"
 
 : 'Generating terraform.tf'
 cat<<EOF>terraform.tf
@@ -99,10 +99,10 @@ EOF
 
 if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
 	: 'Generating _aws_provider.tf'
-	echo "::set-env name=AWS_ASSUME_ROLE::${INPUT_AWS_ASSUME_ROLE}"
+	echo "AWS_ASSUME_ROLE=${INPUT_AWS_ASSUME_ROLE}" >> "${GITHUB_ENV}"
 	role_external_id=
 	if test -n "${INPUT_AWS_EXTERNAL_ID:=${AWS_EXTERNAL_ID}}"; then
-		echo "::set-env name=AWS_EXTERNAL_ID::${INPUT_AWS_EXTERNAL_ID}"
+		echo "AWS_EXTERNAL_ID=${INPUT_AWS_EXTERNAL_ID}" >> "${GITHUB_ENV}"
 		role_external_id="external_id = \"${INPUT_AWS_EXTERNAL_ID}\""
 	fi
 	sed -e 's/^	//'<<EOF>_aws_provider.tf
@@ -305,7 +305,7 @@ tf_out() {
 	set -- "${1##_}" "${2}"
 	set -- "${1%%_}" "${2}"
 	echo "::set-output name=${1}::${2}"
-	echo "::set-env name=TF_VAR_${1}::${2}"
+	echo "TF_VAR_${1}=${2}" >> "${GITHUB_ENV}"
 	eval "TF_VAR_${1}=\"${2}\""
 }
 tf_export()
@@ -334,8 +334,8 @@ for key in $(tf_keys  "${TERRAFORM_JSON}"); do
 done
 
 if test -n "${INPUT_TF_ASSUME_ROLE}"; then
-	echo "::set-env name=AWS_ASSUME_ROLE::arn:aws:iam::${TF_VAR_account_id}:role/${INPUT_TF_ASSUME_ROLE}"
+	echo "AWS_ASSUME_ROLE=arn:aws:iam::${TF_VAR_account_id}:role/${INPUT_TF_ASSUME_ROLE}" >> "${GITHUB_ENV}"
 	if test -n "${TF_VAR_external_id}"; then
-		echo "::set-env name=AWS_EXTERNAL_ID::${TF_VAR_external_id}"
+		echo "AWS_EXTERNAL_ID=${TF_VAR_external_id}" >> "${GITHUB_ENV}"
 	fi
 fi
