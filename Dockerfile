@@ -32,7 +32,7 @@ RUN set -e \
 # Install Terraform
 COPY *-install /app/
 RUN set -e \
-	&& ./terraform-install '0.12.24' \
+	&& ./terraform-install '0.12.31' \
 	&& ./credstash-install '0.4.1'
 
 # Manage the Entrypoint
