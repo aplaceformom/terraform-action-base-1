@@ -1,6 +1,8 @@
-FROM alpine:3.11.6
+FROM alpine:3.12.7
 
 WORKDIR /app
+
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 # Prep base system
 RUN set -e \
@@ -12,21 +14,23 @@ RUN set -e \
 		libffi-dev \
 		openssl-dev \
 		git \
-		py3-pip \
 		jq \
 		curl \
 		libffi \
 		openssl \
-	&& pip3 install --upgrade \
+		rust \
+	&& python3 -m ensurepip --upgrade \
+	&& python3 -m pip install --upgrade pip \
+	&& python3 -m pip install --upgrade \
 		awscli==1.18.49 \
 		s3cmd==2.1.0 \
 		credstash==1.17.1 \
 	&& apk --purge -v del \
 		build-base \
-		py3-pip \
 		python3-dev \
 		libffi-dev \
 		openssl-dev \
+		rust \
 	&& rm -f /var/cache/apk/*
 
 # Install Terraform
