@@ -110,7 +110,7 @@ if test -n "${INPUT_AWS_ASSUME_ROLE:=${AWS_ASSUME_ROLE}}"; then
 		region  = "${AWS_DEFAULT_REGION}"
 		assume_role {
 			role_arn = "${INPUT_AWS_ASSUME_ROLE}"
-			session_name = "${GIHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
+			session_name = "${GITHUB_ACTION_NAME}_${GITHUB_ACTION_COUNT}"
 			${role_external_id}
 		}
 	}
