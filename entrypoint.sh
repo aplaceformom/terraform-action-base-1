@@ -263,6 +263,21 @@ test "$#" -eq '0' || exec "$@"
 
 # The above `exec` prevents us from reaching this code if the Docker CMD was specified
 
+# Handle dynamic tainting inputs
+if test "${INPUT_TERRAFORM_TAINT:=false}" = 'true'; then
+  if test -z "${INPUT_TAINT_RESOURCES}"; then
+    die 'INPUT_TAINT_RESOURCES must be provided when INPUT_TERRAFORM_TAINT is true'
+  fi
+
+  # Split the comma-separated list of resources and taint them (Terraform does not support tainting multiple resources at once)
+  echo "Starting tainting process..."
+  IFS=',' read -r -a resources <<< "${INPUT_TAINT_RESOURCES}"
+  for resource in "${resources[@]}"; do
+    echo "Tainting resource: $resource"
+    terraform taint "$resource" || die "Failed to taint resource: $resource"
+  done
+fi
+
 if test "${INPUT_PLAN:=true}" = 'true'; then
 	: Terraform Plan
 	terraform plan \
