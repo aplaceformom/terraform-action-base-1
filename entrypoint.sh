@@ -272,6 +272,12 @@ fi
 
 if test "${INPUT_DESTROY:=false}" = 'true'; then
 	: Terraform Destroy
+	
+	if test "${INPUT_REMOVE_R53_RECORD_FROM_STATE:=false}" = 'true'; then
+		: Removing Route53 A record from state
+		terraform state rm aws_route53_record.default || :
+	fi
+	
 	terraform destroy \
 		-input=false \
 		-compact-warnings \
